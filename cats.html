@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>고양이 페이지 🐱</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #ffd6e0 0%, #c7ceea 100%);
+      overflow-x: hidden;
+      padding: 2rem 1rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      color: #4a3f5c;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #6b5e7a;
+      font-size: 1rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    button {
+      background: #fff;
+      border: 2px solid #b8a9c9;
+      color: #4a3f5c;
+      padding: 0.6rem 1.2rem;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 2px 6px rgba(74, 63, 92, 0.1);
+    }
+
+    button:hover { background: #fff5fa; transform: translateY(-2px); }
+    button:active { transform: translateY(0); }
+    button.primary { background: #ff8fab; color: #fff; border-color: #ff8fab; }
+    button.primary:hover { background: #ff7095; }
+
+    .counter {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #6b5e7a;
+      margin-bottom: 1.5rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .cat-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(74, 63, 92, 0.12);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+      animation: pop 0.35s ease;
+    }
+
+    .cat-card:hover { transform: translateY(-4px) rotate(-1deg); }
+
+    .cat-card .emoji {
+      font-size: 3.5rem;
+      display: inline-block;
+      animation: wiggle 2.5s ease-in-out infinite;
+    }
+
+    .cat-card .name {
+      margin-top: 0.5rem;
+      font-weight: 600;
+      color: #4a3f5c;
+    }
+
+    .cat-card .fact {
+      margin-top: 0.3rem;
+      font-size: 0.8rem;
+      color: #8a7a9c;
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(0.6); opacity: 0; }
+      60%  { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-3deg); }
+      50%      { transform: rotate(3deg); }
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: #6b5e7a;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐱 고양이 페이지</h1>
+    <p class="subtitle">버튼을 눌러서 랜덤 고양이를 만나보세요</p>
+  </header>
+
+  <div class="controls">
+    <button class="primary" id="addBtn">고양이 추가 +1</button>
+    <button id="addFiveBtn">+5마리</button>
+    <button id="partyBtn">파티 모드 🎉</button>
+    <button id="clearBtn">모두 내보내기</button>
+  </div>
+
+  <div class="counter" id="counter">지금까지 만난 고양이: 0 마리</div>
+
+  <main class="grid" id="grid"></main>
+
+  <footer>
+    클릭하면 고양이가 인사해요 · 만들어진 날: <span id="today"></span>
+  </footer>
+
+  <script>
+    const catEmojis = [
+      "🐱", "🐈", "🐈‍⬛", "😺", "😸", "😹", "😻", "😼", "😽", "🙀",
+      "😿", "😾", "🦁", "🐅", "🐆"
+    ];
+
+    const catNames = [
+      "나비", "초코", "루나", "미오", "코코", "모찌", "망고", "치즈",
+      "까망이", "하늘", "보리", "라떼", "두부", "콩이", "감자",
+      "몽실", "푹신", "냥이", "토리", "레오", "시루", "하몽",
+      "구름", "달빛", "별이", "호두", "마카", "다니엘"
+    ];
+
+    const catFacts = [
+      "햇볕을 좋아해요",
+      "꾀꾀하게 자는 걸 즐겨요",
+      "낚싯대 장난감이 최고",
+      "간식을 졸라요",
+      "박스 속에 들어가요",
+      "창밖을 구경해요",
+      "목이 그르렁 그르렁",
+      "꼬리가 쭈뼛쭈뼛",
+      "깃털에 눈이 반짝",
+      "종이봉투가 친구",
+      "3초 만에 잠듦",
+      "눈높이에서 지켜봐요"
+    ];
+
+    const grid = document.getElementById("grid");
+    const counter = document.getElementById("counter");
+    const today = document.getElementById("today");
+    today.textContent = new Date().toLocaleDateString("ko-KR");
+
+    function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function makeCat() {
+      const card = document.createElement("div");
+      card.className = "cat-card";
+      card.innerHTML = `
+        <span class="emoji">${rand(catEmojis)}</span>
+        <div class="name">${rand(catNames)}</div>
+        <div class="fact">${rand(catFacts)}</div>
+      `;
+      card.addEventListener("click", () => {
+        card.querySelector(".emoji").style.transform = "scale(1.4) rotate(20deg)";
+        setTimeout(() => {
+          card.querySelector(".emoji").style.transform = "";
+        }, 400);
+      });
+      grid.appendChild(card);
+      updateCount();
+    }
+
+    function updateCount() {
+      const n = grid.children.length;
+      counter.textContent = `지금까지 만난 고양이: ${n} 마리`;
+    }
+
+    function addCats(n) {
+      for (let i = 0; i < n; i++) makeCat();
+    }
+
+    function partyMode() {
+      addCats(20);
+      document.body.animate(
+        [
+          { background: "linear-gradient(135deg, #ffd6e0, #c7ceea)" },
+          { background: "linear-gradient(135deg, #ffb3c6, #b8c0ff)" },
+          { background: "linear-gradient(135deg, #ffe5b4, #ffb3c6)" },
+          { background: "linear-gradient(135deg, #ffd6e0, #c7ceea)" }
+        ],
+        { duration: 1500, iterations: 2 }
+      );
+    }
+
+    document.getElementById("addBtn").addEventListener("click", () => addCats(1));
+    document.getElementById("addFiveBtn").addEventListener("click", () => addCats(5));
+    document.getElementById("partyBtn").addEventListener("click", partyMode);
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      grid.innerHTML = "";
+      updateCount();
+    });
+
+    // 시작할 때 고양이 몇 마리 미리 보여주기
+    addCats(6);
+  </script>
+</body>
+</html>
